@@ -1,0 +1,108 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Pi Claim Bot Dashboard</title>
+  <style>
+    body {
+      font-family: Arial, sans-serif;
+      padding: 1rem;
+      background: #f4f4f4;
+    }
+    .box {
+      background: #fff;
+      border-radius: 8px;
+      padding: 1rem;
+      box-shadow: 0 0 10px rgba(0,0,0,0.1);
+      max-width: 600px;
+      margin: 1rem auto;
+    }
+    input, button {
+      padding: 0.5rem;
+      margin: 0.2rem 0;
+      width: 100%;
+    }
+    button {
+      background: #783A8D;
+      color: #fff;
+      border: none;
+      cursor: pointer;
+      font-weight: bold;
+    }
+    .hidden { display: none; }
+  </style>
+</head>
+<body>
+  <div class="box">
+    <h2>🔐 Login</h2>
+    <input id="username" placeholder="Username" value="Topboy" />
+    <input id="passcode" placeholder="Passcode" type="password" />
+    <button onclick="login()">Login</button>
+  </div>  <div class="box hidden" id="botForm">
+    <h2>🚀 Add Wallet Bot</h2>
+    <input id="secret" placeholder="Secret Key" />
+    <input id="public" placeholder="Public Key" />
+    <input id="destination" placeholder="Destination Address" />
+    <input id="claimId" placeholder="Claimable Balance ID" />
+    <input id="amount" placeholder="Amount (e.g. 0.9999)" />
+    <input id="unlockTime" placeholder="Unlock Time (UTC ISO Format)" />
+    <input id="fee" placeholder="Base Fee Pi (e.g. 0.0005)" />
+    <button onclick="addWallet()">Add Wallet Bot</button>
+    <h3>🗑 Remove Wallet</h3>
+    <input id="removeKey" placeholder="Public Key to Remove" />
+    <button onclick="removeWallet()">Remove</button>
+  </div>  <script>
+    let passcode = '';
+
+    async function login() {
+      const username = document.getElementById('username').value;
+      passcode = document.getElementById('passcode').value;
+
+      const res = await fetch('/login', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ username, passcode })
+      });
+      const json = await res.json();
+      if (json.success) {
+        document.getElementById('botForm').classList.remove('hidden');
+        alert('✅ Logged in from IP: ' + json.ip);
+      } else {
+        alert('❌ Login failed');
+      }
+    }
+
+    async function addWallet() {
+      const bot = {
+        secret: document.getElementById('secret').value,
+        public: document.getElementById('public').value,
+        destination: document.getElementById('destination').value,
+        claimId: document.getElementById('claimId').value,
+        amount: document.getElementById('amount').value,
+        unlockTime: document.getElementById('unlockTime').value,
+        baseFeePi: document.getElementById('fee').value,
+        passcode
+      };
+
+      const res = await fetch('/add-wallet', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(bot)
+      });
+      const json = await res.json();
+      alert(json.success ? '✅ Wallet added' : '❌ Failed: ' + json.error);
+    }
+
+    async function removeWallet() {
+      const publicKey = document.getElementById('removeKey').value;
+      const res = await fetch('/remove-wallet', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ public: publicKey, passcode })
+      });
+      const json = await res.json();
+      alert(json.success ? '✅ Wallet removed' : '❌ Error: ' + json.error);
+    }
+  </script></body>
+</html>
